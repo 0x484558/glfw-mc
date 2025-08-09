@@ -171,6 +171,8 @@ information on what to include when reporting a bug.
  - Added `GLFW_MANAGE_PREEDIT_CANDIDATE` init hint for displaying preedit
    candidates on the application side (supported only on Windows currently)
    (#2130)
+ - [X11] Bugfix: Prevent BadWindow when creating small windows with a content scale
+   less than 1 (#2754)
 
 
 ## Contact

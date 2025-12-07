@@ -391,6 +391,9 @@ typedef struct _GLFWwindowWayland
 
     _GLFWcursor*                currentCursor;
     double                      cursorPosX, cursorPosY;
+    uint32_t                    pointerAxisTime;
+    double                      requestedCursorPosX, requestedCursorPosY;
+    GLFWbool                    requestedSetCursorPos;
 
     char*                       appId;
 

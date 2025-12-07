@@ -37,6 +37,32 @@ around the world, whether by reporting bugs, providing community support, adding
 features, reviewing or testing code, debugging, proofreading docs, suggesting
 features or fixing bugs.
 
+### Patches for Minecraft on Wayland
+
+[This fork](https://github.com/0x484558/glfw-mc) adds minor Wayland‑specific
+fixes and enhancements needed for Minecraft:
+
+- **Build configuration** defaults to `Release` build type and enable aggressive
+compiler optimisations (`-march=native -mtune=native -Ofast -flto`) as this is
+beneficial when already committing to a headache of running a custom GLFW
+build with Minecraft on Wayland. Additionally, shared libraries and Wayland
+support are enabled by default.
+
+- **Input handling** improved - modifiers are stripped from character input,
+scroll events deduplicated.
+
+- **Window management** tweaked - unsupported features do not cause a crash,
+window size changes are propagated to GLFW and cursor‑position hints are
+forwarded to the compositor when a locked pointer is active.
+
+- **Rebase [IME support](https://github.com/glfw/glfw/pull/2130) PR** to enable
+compatibility with latest LWJGL.
+
+**Important for NVIDIA users:** add `__GL_THREADED_OPTIMIZATIONS=0` to
+environment variables before running Minecraft.
+
+You might additionally want to install [`kdotool`](https://github.com/jinliu/kdotool)
+on KDE Plasma and [Wayfix](https://modrinth.com/mod/wayfix) mod.
 
 ## System requirements
 

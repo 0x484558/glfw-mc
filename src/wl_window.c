@@ -1362,7 +1362,8 @@ static void inputText(_GLFWwindow* window, uint32_t scancode)
         {
             const int mods = _glfw.wl.xkb.modifiers;
             const int plain = !(mods & (GLFW_MOD_CONTROL | GLFW_MOD_ALT));
-            _glfwInputChar(window, codepoint, mods, plain);
+            if (plain)
+                _glfwInputChar(window, codepoint, mods, plain);
         }
     }
 }
@@ -1675,6 +1676,11 @@ static void pointerHandleAxis(void* userData,
     _GLFWwindow* window = _glfw.wl.pointerFocus;
     if (!window)
         return;
+
+    // Filter out duplicate events
+    if (window->wl.pointerAxisTime == time)
+        return;
+    window->wl.pointerAxisTime = time;
 
     if (window->wl.hovered)
     {
@@ -2705,25 +2711,23 @@ void _glfwSetWindowTitleWayland(_GLFWwindow* window, const char* title)
 void _glfwSetWindowIconWayland(_GLFWwindow* window,
                                int count, const GLFWimage* images)
 {
-    _glfwInputError(GLFW_FEATURE_UNAVAILABLE,
-                    "Wayland: The platform does not support setting the window icon");
+    fprintf(stderr,
+            "[GLFW] Wayland: The platform does not support setting the window icon\n");
 }
 
 void _glfwGetWindowPosWayland(_GLFWwindow* window, int* xpos, int* ypos)
 {
     // A Wayland client is not aware of its position, so just warn and leave it
     // as (0, 0)
-
-    _glfwInputError(GLFW_FEATURE_UNAVAILABLE,
-                    "Wayland: The platform does not provide the window position");
+    fprintf(stderr,
+            "[GLFW] Wayland: The platform does not provide the window position\n");
 }
 
 void _glfwSetWindowPosWayland(_GLFWwindow* window, int xpos, int ypos)
 {
     // A Wayland client can not set its position, so just warn
-
-    _glfwInputError(GLFW_FEATURE_UNAVAILABLE,
-                    "Wayland: The platform does not support setting the window position");
+    fprintf(stderr,
+            "[GLFW] Wayland: The platform does not support setting the window position\n");
 }
 
 void _glfwGetWindowSizeWayland(_GLFWwindow* window, int* width, int* height)
@@ -2752,6 +2756,8 @@ void _glfwSetWindowSizeWayland(_GLFWwindow* window, int width, int height)
             libdecor_frame_commit(window->wl.libdecor.frame, frameState, NULL);
             libdecor_state_free(frameState);
         }
+
+        _glfwInputWindowSize(window, width, height);
 
         if (window->wl.visible)
             _glfwInputWindowDamage(window);
@@ -3145,8 +3151,17 @@ void _glfwGetCursorPosWayland(_GLFWwindow* window, double* xpos, double* ypos)
 
 void _glfwSetCursorPosWayland(_GLFWwindow* window, double x, double y)
 {
-    _glfwInputError(GLFW_FEATURE_UNAVAILABLE,
-                    "Wayland: The platform does not support setting the cursor position");
+    if (window->wl.lockedPointer) {
+        zwp_locked_pointer_v1_set_cursor_position_hint(window->wl.lockedPointer,
+                                                       wl_fixed_from_double(x),
+                                                       wl_fixed_from_double(y));
+        window->wl.cursorPosX = x;
+        window->wl.cursorPosY = y;
+    } else {
+        window->wl.requestedSetCursorPos = GLFW_TRUE;
+        window->wl.requestedCursorPosX = x;
+        window->wl.requestedCursorPosY = y;
+    }
 }
 
 void _glfwSetCursorModeWayland(_GLFWwindow* window, int mode)
@@ -3380,6 +3395,17 @@ static const struct zwp_relative_pointer_v1_listener relativePointerListener =
 static void lockedPointerHandleLocked(void* userData,
                                       struct zwp_locked_pointer_v1* lockedPointer)
 {
+    _GLFWwindow* window = userData;
+
+    if (window->wl.requestedSetCursorPos)
+    {
+        window->wl.requestedSetCursorPos = GLFW_FALSE;
+        zwp_locked_pointer_v1_set_cursor_position_hint(window->wl.lockedPointer,
+                                                       wl_fixed_from_double(window->wl.requestedCursorPosX),
+                                                       wl_fixed_from_double(window->wl.requestedCursorPosY));
+        window->wl.cursorPosX = window->wl.requestedCursorPosX;
+        window->wl.cursorPosY = window->wl.requestedCursorPosY;
+    }
 }
 
 static void lockedPointerHandleUnlocked(void* userData,

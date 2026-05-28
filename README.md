@@ -146,6 +146,7 @@ information on what to include when reporting a bug.
 
 ## Changelog since 3.4
 
+ - Updated this fork with upstream GLFW changes through `b00e6a8a88ad`
  - Added `GLFW_UNLIMITED_MOUSE_BUTTONS` input mode that allows mouse buttons beyond
    the limit of the mouse button tokens to be reported (#2423)
  - Added `glfwGetEGLConfig` function to query the `EGLConfig` of a window (#2045)
@@ -183,6 +184,8 @@ information on what to include when reporting a bug.
    was suspended (#1350,#2582,#2640,#2719,#2723,#2800,#2827)
  - [Wayland] Bugfix: `glfwPostEmptyEvent` would leak a callback proxy (#2836)
  - [Wayland] Bugfix: `glfwHideWindow` did not always send its request immediately
+ - [Wayland] Bugfix: Initial window and framebuffer size callbacks could be
+   emitted synchronously during window creation or showing
  - [X11] Bugfix: Running without a WM could trigger an assert (#2593,#2601,#2631)
  - [X11] Bugfix: Occasional crash when an idle display awakes (#2766) 
  - [X11] Bugfix: Prevent BadWindow when creating small windows with a content scale

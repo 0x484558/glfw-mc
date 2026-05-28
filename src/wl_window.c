@@ -63,6 +63,8 @@
 #define GLFW_PENDING_SCROLL     8
 #define GLFW_PENDING_DISCRETE   16
 
+static void handleEvents(double* timeout);
+
 static int createTmpfileCloexec(char* tmpname)
 {
     int fd;
@@ -474,6 +476,22 @@ static void setContentAreaOpaque(_GLFWwindow* window)
     wl_region_destroy(region);
 }
 
+static void inputFramebufferSize(_GLFWwindow* window)
+{
+    if (window->wl.deferSizeEvents)
+        window->wl.deferredFramebufferSize = GLFW_TRUE;
+    else
+        _glfwInputFramebufferSize(window, window->wl.fbWidth, window->wl.fbHeight);
+}
+
+static void inputWindowSize(_GLFWwindow* window)
+{
+    if (window->wl.deferSizeEvents)
+        window->wl.deferredWindowSize = GLFW_TRUE;
+    else
+        _glfwInputWindowSize(window, window->wl.width, window->wl.height);
+}
+
 static void resizeFramebuffer(_GLFWwindow* window)
 {
     if (window->wl.fractionalScale)
@@ -498,7 +516,7 @@ static void resizeFramebuffer(_GLFWwindow* window)
     if (!window->wl.transparent)
         setContentAreaOpaque(window);
 
-    _glfwInputFramebufferSize(window, window->wl.fbWidth, window->wl.fbHeight);
+    inputFramebufferSize(window);
 }
 
 static GLFWbool resizeWindow(_GLFWwindow* window, int width, int height)
@@ -844,7 +862,7 @@ static void xdgSurfaceHandleConfigure(void* userData,
 
     if (resizeWindow(window, width, height))
     {
-        _glfwInputWindowSize(window, window->wl.width, window->wl.height);
+        inputWindowSize(window);
 
         if (window->wl.visible)
             _glfwInputWindowDamage(window);
@@ -941,7 +959,7 @@ void libdecorFrameHandleConfigure(struct libdecor_frame* frame,
 
     if (resizeWindow(window, width, height))
     {
-        _glfwInputWindowSize(window, window->wl.width, window->wl.height);
+        inputWindowSize(window);
         damaged = GLFW_TRUE;
     }
 
@@ -981,7 +999,7 @@ static GLFWbool createLibdecorFrame(_GLFWwindow* window)
 {
     // Allow libdecor to finish initialization of itself and its plugin
     while (!_glfw.wl.libdecor.ready)
-        _glfwWaitEventsWayland();
+        handleEvents(NULL);
 
     window->wl.libdecor.frame = libdecor_decorate(_glfw.wl.libdecor.context,
                                                   window->wl.surface,
@@ -2832,6 +2850,7 @@ GLFWbool _glfwCreateWindowWayland(_GLFWwindow* window,
 
     if (window->monitor || wndconfig->visible)
     {
+        window->wl.deferSizeEvents = GLFW_TRUE;
         if (!createShellObjects(window))
             return GLFW_FALSE;
     }
@@ -3134,12 +3153,17 @@ void _glfwShowWindowWayland(_GLFWwindow* window)
     {
         // NOTE: The XDG surface and role are created here so command-line applications
         //       with off-screen windows do not appear in for example the Unity dock
+        window->wl.deferSizeEvents = GLFW_TRUE;
         createShellObjects(window);
     }
 }
 
 void _glfwHideWindowWayland(_GLFWwindow* window)
 {
+    window->wl.deferSizeEvents = GLFW_FALSE;
+    window->wl.deferredWindowSize = GLFW_FALSE;
+    window->wl.deferredFramebufferSize = GLFW_FALSE;
+
     if (window->wl.visible)
     {
         window->wl.visible = GLFW_FALSE;
@@ -3345,20 +3369,89 @@ GLFWbool _glfwRawMouseMotionSupportedWayland(void)
     return GLFW_TRUE;
 }
 
+static GLFWbool flushDeferredSizeEvents(void)
+{
+    GLFWbool dispatched = GLFW_FALSE;
+
+    for (;;)
+    {
+        _GLFWwindow* window = _glfw.windowListHead;
+        while (window && !window->wl.deferSizeEvents)
+            window = window->next;
+
+        if (!window)
+            break;
+
+        const GLFWbool framebufferSize = window->wl.deferredFramebufferSize;
+        const GLFWbool windowSize = window->wl.deferredWindowSize;
+        const int fbWidth = window->wl.fbWidth;
+        const int fbHeight = window->wl.fbHeight;
+        const int width = window->wl.width;
+        const int height = window->wl.height;
+        const GLFWbool wasVisible = window->wl.visible;
+
+        window->wl.deferSizeEvents = GLFW_FALSE;
+        window->wl.deferredFramebufferSize = GLFW_FALSE;
+        window->wl.deferredWindowSize = GLFW_FALSE;
+
+        if (framebufferSize)
+        {
+            _glfwInputFramebufferSize(window, fbWidth, fbHeight);
+            dispatched = GLFW_TRUE;
+        }
+
+        GLFWbool windowAlive = GLFW_TRUE;
+        if (framebufferSize)
+        {
+            windowAlive = GLFW_FALSE;
+            for (_GLFWwindow* current = _glfw.windowListHead; current; current = current->next)
+            {
+                if (current == window)
+                {
+                    windowAlive = GLFW_TRUE;
+                    break;
+                }
+            }
+        }
+
+        if (windowSize &&
+            windowAlive &&
+            window->wl.width == width &&
+            window->wl.height == height &&
+            (!wasVisible || window->wl.visible))
+        {
+            _glfwInputWindowSize(window, width, height);
+            dispatched = GLFW_TRUE;
+        }
+    }
+
+    return dispatched;
+}
+
 void _glfwPollEventsWayland(void)
 {
     double timeout = 0.0;
+    flushDeferredSizeEvents();
     handleEvents(&timeout);
+    flushDeferredSizeEvents();
 }
 
 void _glfwWaitEventsWayland(void)
 {
+    if (flushDeferredSizeEvents())
+        return;
+
     handleEvents(NULL);
+    flushDeferredSizeEvents();
 }
 
 void _glfwWaitEventsTimeoutWayland(double timeout)
 {
+    if (flushDeferredSizeEvents())
+        return;
+
     handleEvents(&timeout);
+    flushDeferredSizeEvents();
 }
 
 void _glfwPostEmptyEventWayland(void)

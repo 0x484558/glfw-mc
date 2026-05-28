@@ -369,6 +369,9 @@ typedef struct _GLFWwindowWayland
     int                         width, height;
     int                         fbWidth, fbHeight;
     GLFWbool                    visible;
+    GLFWbool                    deferSizeEvents;
+    GLFWbool                    deferredWindowSize;
+    GLFWbool                    deferredFramebufferSize;
     GLFWbool                    maximized;
     GLFWbool                    activated;
     GLFWbool                    fullscreen;

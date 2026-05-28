@@ -135,9 +135,9 @@ void _glfwInputWindowContentScale(_GLFWwindow* window, float xscale, float yscal
 {
     assert(window != NULL);
     assert(xscale > 0.f);
-    assert(isfinite(xscale));
+    assert(xscale <= FLT_MAX);
     assert(yscale > 0.f);
-    assert(isfinite(yscale));
+    assert(yscale <= FLT_MAX);
 
     if (window->callbacks.scale)
         window->callbacks.scale((GLFWwindow*) window, xscale, yscale);
@@ -786,7 +786,6 @@ GLFWAPI float glfwGetWindowOpacity(GLFWwindow* handle)
 
 GLFWAPI void glfwSetWindowOpacity(GLFWwindow* handle, float opacity)
 {
-    assert(isfinite(opacity));
     assert(opacity >= 0.f);
     assert(opacity <= 1.f);
 
@@ -795,7 +794,7 @@ GLFWAPI void glfwSetWindowOpacity(GLFWwindow* handle, float opacity)
     _GLFWwindow* window = (_GLFWwindow*) handle;
     assert(window != NULL);
 
-    if (!isfinite(opacity) || opacity < 0.f || opacity > 1.f)
+    if (!(opacity >= 0.f && opacity <= 1.f))
     {
         _glfwInputError(GLFW_INVALID_VALUE, "Invalid window opacity %f", opacity);
         return;
@@ -1188,10 +1187,10 @@ GLFWAPI void glfwWaitEvents(void)
 GLFWAPI void glfwWaitEventsTimeout(double timeout)
 {
     _GLFW_REQUIRE_INIT();
-    assert(isfinite(timeout));
     assert(timeout >= 0.0);
+    assert(timeout <= DBL_MAX);
 
-    if (!isfinite(timeout) || timeout < 0.0)
+    if (!(timeout >= 0.0 && timeout <= DBL_MAX))
     {
         _glfwInputError(GLFW_INVALID_VALUE, "Invalid time %f", timeout);
         return;
@@ -1205,4 +1204,3 @@ GLFWAPI void glfwPostEmptyEvent(void)
     _GLFW_REQUIRE_INIT();
     _glfw.platform.postEmptyEvent();
 }
-

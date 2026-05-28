@@ -469,13 +469,13 @@ GLFWAPI void glfwSetGamma(GLFWmonitor* handle, float gamma)
     const GLFWgammaramp* original;
 
     assert(gamma > 0.f);
-    assert(isfinite(gamma));
+    assert(gamma <= FLT_MAX);
 
     _GLFW_REQUIRE_INIT();
 
     assert(handle != NULL);
 
-    if (!isfinite(gamma) || gamma <= 0.f)
+    if (!(gamma > 0.f && gamma <= FLT_MAX))
     {
         _glfwInputError(GLFW_INVALID_VALUE, "Invalid gamma value %f", gamma);
         return;
@@ -553,4 +553,3 @@ GLFWAPI void glfwSetGammaRamp(GLFWmonitor* handle, const GLFWgammaramp* ramp)
 
     _glfw.platform.setGammaRamp(monitor, ramp);
 }
-

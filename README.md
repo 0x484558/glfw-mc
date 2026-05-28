@@ -43,7 +43,7 @@ features or fixing bugs.
 fixes and enhancements needed for Minecraft:
 
 - **Build configuration** defaults to `Release` build type and enable aggressive
-compiler optimisations (`-march=native -mtune=native -Ofast -flto`) as this is
+compiler optimisations (`-march=native -mtune=native -O3 -ffast-math -flto`) as this is
 beneficial when already committing to a headache of running a custom GLFW
 build with Minecraft on Wayland. Additionally, shared libraries and Wayland
 support are enabled by default.

@@ -10,6 +10,7 @@ video tutorials.
  - Matt Arsenault
  - Takuro Ashie
  - ashishgamedev
+ - avagordon01
  - David Avedissian
  - Luca Bacci
  - Keith Bauer
@@ -56,6 +57,7 @@ video tutorials.
  - Jason Daly
  - danhambleton
  - Jarrod Davis
+ - Aaron Day
  - decce
  - Olivier Delannoy
  - Paul R. Deppe
@@ -75,11 +77,13 @@ video tutorials.
  - Nikita Fediuchin
  - Felipe Ferreira
  - Michael Fogleman
+ - Folling
  - forworldm
  - Jason Francis
  - Gerald Franz
  - Mário Freitas
  - Daijiro Fukuda
+ - Friz64
  - GeO4d
  - Marcus Geelnard
  - Gegy
@@ -163,6 +167,7 @@ video tutorials.
  - Bryce Mehring
  - Jonathan Mercier
  - Marcel Metz
+ - Lucas Michaudel
  - Liam Middlebrook
  - mightgoyardstill
  - Mihail
@@ -308,4 +313,3 @@ video tutorials.
  - Leonard König
  - All the unmentioned and anonymous contributors in the GLFW community, for bug
    reports, patches, feedback, testing and encouragement
-

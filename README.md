@@ -174,11 +174,22 @@ information on what to include when reporting a bug.
    potential segmentation fault (#2744)
  - [Wayland] Bugfix: Confining or disabling the cursor could segfault on
    compositors without `pointer-constraints-unstable-v1`
+ - [Wayland] Bugfix: Key repeat did not function on very old compositors
+ - [Wayland] Bugfix: The `libwayland-client` library was not unloaded at termination
+ - [Wayland] Bugfix: Scroll events were sent twice on some versions of GNOME (#2494)
+ - [Wayland] Bugfix: Two-dimensional scroll input was emitted as separate axes
+ - [Wayland] Bugfix: Mouse wheel scroll distance was incorrect on some compositors
+ - [Wayland] Bugfix: `glfwSwapBuffers` would halt with nonzero swap interval when window
+   was suspended (#1350,#2582,#2640,#2719,#2723,#2800,#2827)
+ - [Wayland] Bugfix: `glfwPostEmptyEvent` would leak a callback proxy (#2836)
+ - [Wayland] Bugfix: `glfwHideWindow` did not always send its request immediately
  - [X11] Bugfix: Running without a WM could trigger an assert (#2593,#2601,#2631)
  - [X11] Bugfix: Occasional crash when an idle display awakes (#2766) 
  - [X11] Bugfix: Prevent BadWindow when creating small windows with a content scale
    less than 1 (#2754)
  - [X11] Bugfix: Clamp width and height to >= 1 to prevent BadValue error and app exit
+ - [X11] Bugfix: Floating windows silently became non-floating when hidden (#2276)
+ - [X11] Bugfix: The `libXext` library was not unloaded at termination
  - [Linux] Bugfix: The header for `ioctl` was only implicitly included (#2778)
  - [Null] Added Vulkan 'window' surface creation via `VK_EXT_headless_surface`
  - [Null] Added EGL context creation on Mesa via `EGL_MESA_platform_surfaceless`
@@ -206,9 +217,6 @@ information on what to include when reporting a bug.
  - Added `GLFW_MANAGE_PREEDIT_CANDIDATE` init hint for displaying preedit
    candidates on the application side (supported only on Windows currently)
    (#2130)
- - [X11] Bugfix: Prevent BadWindow when creating small windows with a content scale
-   less than 1 (#2754)
-
 
 ## Contact
 
@@ -224,4 +232,3 @@ request, please file it in the
 
 Finally, if you're interested in helping out with the development of GLFW or
 porting it to your favorite platform, join us on the forum or GitHub.
-

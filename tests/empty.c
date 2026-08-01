@@ -78,8 +78,17 @@ static int thread_main(void* data)
 
     srand((unsigned int) time(NULL));
 
-    while (state->running)
+    for (;;)
     {
+        bool running;
+
+        mtx_lock(&state->lock);
+        running = state->running;
+        mtx_unlock(&state->lock);
+
+        if (!running)
+            break;
+
         generate_color(state);
         glfwPostEmptyEvent();
 
@@ -152,14 +161,27 @@ int main(void)
 
     while (!glfwWindowShouldClose(window))
     {
-        if (state.needs_update)
-        {
-            mtx_lock(&state.lock);
-            glViewport(0, 0, state.width, state.height);
-            glClearColor(state.r, state.g, state.b, 1.f);
-            state.needs_update = false;
-            mtx_unlock(&state.lock);
+        bool needs_update;
+        int width, height;
+        float r, g, b;
 
+        mtx_lock(&state.lock);
+        needs_update = state.needs_update;
+        if (needs_update)
+        {
+            width = state.width;
+            height = state.height;
+            r = state.r;
+            g = state.g;
+            b = state.b;
+            state.needs_update = false;
+        }
+        mtx_unlock(&state.lock);
+
+        if (needs_update)
+        {
+            glViewport(0, 0, width, height);
+            glClearColor(r, g, b, 1.f);
             glClear(GL_COLOR_BUFFER_BIT);
             glfwSwapBuffers(window);
         }
@@ -168,7 +190,9 @@ int main(void)
     }
 
     glfwHideWindow(window);
+    mtx_lock(&state.lock);
     state.running = false;
+    mtx_unlock(&state.lock);
     thrd_join(color_thread, NULL);
     mtx_destroy(&state.lock);
 

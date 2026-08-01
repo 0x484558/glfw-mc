@@ -294,13 +294,18 @@ static void swapBuffersEGL(_GLFWwindow* window)
         if (!window->wl.visible)
             return;
 
-        // NOTE: We wait for a frame manually so we can add a timeout,
+        // NOTE: We wait for frames manually so we can add a timeout,
         //       as the EGL implementation will wait indefinitely
         if (window->wl.egl.interval > 0)
         {
+            int i;
+
             window->context.Flush();
-            if (!_glfwWaitForEGLFrameWayland(window))
-                return;
+            for (i = 0; i < window->wl.egl.interval; i++)
+            {
+                if (!_glfwWaitForEGLFrameWayland(window))
+                    return;
+            }
         }
     }
 #endif

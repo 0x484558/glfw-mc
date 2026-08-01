@@ -1627,6 +1627,14 @@ static void processPointerMotion(double xpos, double ypos)
 static void processPointerButton(int button, int action)
 {
     _GLFWwindow* window = wl_surface_get_user_data(_glfw.wl.pointerSurface);
+
+    // On weston, pressing the title bar will cause a leave event and may not
+    // emit a matching enter event before returning to the content area.
+    activateTextInputV1(window);
+
+    if (window->wl.fallback.decorations && action == GLFW_PRESS)
+        window->wl.fallback.buttonPressSerial = _glfw.wl.serial;
+
     if (window->wl.surface == _glfw.wl.pointerSurface)
         _glfwInputMouseClick(window, button, action, _glfw.wl.xkb.modifiers);
     else
@@ -1634,6 +1642,20 @@ static void processPointerButton(int button, int action)
         if (window->wl.fallback.decorations)
             handleFallbackDecorationButton(window, button, action);
     }
+}
+
+// True if pointer events can be associated with a surface now (current focus)
+// or after the pending enter in this wl_pointer.frame is applied.
+static GLFWbool pointerHasSurfaceOrPendingEnter(void)
+{
+    if (_glfw.wl.pointerSurface)
+        return GLFW_TRUE;
+
+    if ((_glfw.wl.pending.events & GLFW_PENDING_SURFACE) &&
+        _glfw.wl.pending.pointerSurface)
+        return GLFW_TRUE;
+
+    return GLFW_FALSE;
 }
 
 static void processPointerScroll(double xoffset, double yoffset)
@@ -1705,13 +1727,23 @@ static void pointerHandleMotion(void* userData,
                                 wl_fixed_t sx,
                                 wl_fixed_t sy)
 {
-    if (!_glfw.wl.pointerSurface)
+    const GLFWbool framing =
+        wl_pointer_get_version(pointer) >= WL_POINTER_FRAME_SINCE_VERSION;
+
+    // With framing, enter only becomes current at pointerHandleFrame; allow
+    // motion that shares a frame with enter to update pending coords.
+    if (framing)
+    {
+        if (!pointerHasSurfaceOrPendingEnter())
+            return;
+    }
+    else if (!_glfw.wl.pointerSurface)
         return;
 
     const double xpos = wl_fixed_to_double(sx);
     const double ypos = wl_fixed_to_double(sy);
 
-    if (wl_pointer_get_version(pointer) >= WL_POINTER_FRAME_SINCE_VERSION)
+    if (framing)
     {
         _glfw.wl.pending.events |= GLFW_PENDING_MOTION;
         _glfw.wl.pending.pointerX = xpos;
@@ -1728,7 +1760,18 @@ static void pointerHandleButton(void* userData,
                                 uint32_t buttonID,
                                 uint32_t state)
 {
-    if (!_glfw.wl.pointerSurface)
+    const GLFWbool framing =
+        wl_pointer_get_version(pointer) >= WL_POINTER_FRAME_SINCE_VERSION;
+
+    // With framing, enter is pending until pointerHandleFrame; do not drop
+    // enter+button coalesced into the same frame, and do not apply side
+    // effects against a stale current surface before the pending enter.
+    if (framing)
+    {
+        if (!pointerHasSurfaceOrPendingEnter())
+            return;
+    }
+    else if (!_glfw.wl.pointerSurface)
         return;
 
     _glfw.wl.serial = serial;
@@ -1736,18 +1779,7 @@ static void pointerHandleButton(void* userData,
     const int button = buttonID - BTN_LEFT;
     const int action = (state == WL_POINTER_BUTTON_STATE_PRESSED);
 
-    _GLFWwindow* window = wl_surface_get_user_data(_glfw.wl.pointerSurface);
-    // On weston, pressing the title bar will cause a leave event and may not
-    // emit a matching enter event before returning to the content area.
-    activateTextInputV1(window);
-
-    if (window->wl.fallback.decorations)
-    {
-        if (action == GLFW_PRESS)
-            window->wl.fallback.buttonPressSerial = serial;
-    }
-
-    if (wl_pointer_get_version(pointer) >= WL_POINTER_FRAME_SINCE_VERSION)
+    if (framing)
     {
         _glfw.wl.pending.events |= GLFW_PENDING_BUTTON;
         _glfw.wl.pending.button = button;
@@ -1763,10 +1795,18 @@ static void pointerHandleAxis(void* userData,
                               uint32_t axis,
                               wl_fixed_t value)
 {
-    if (!_glfw.wl.pointerSurface)
+    const GLFWbool framing =
+        wl_pointer_get_version(pointer) >= WL_POINTER_FRAME_SINCE_VERSION;
+
+    if (framing)
+    {
+        if (!pointerHasSurfaceOrPendingEnter())
+            return;
+    }
+    else if (!_glfw.wl.pointerSurface)
         return;
 
-    if (wl_pointer_get_version(pointer) >= WL_POINTER_FRAME_SINCE_VERSION)
+    if (framing)
     {
         _glfw.wl.pending.events |= GLFW_PENDING_SCROLL;
         if (axis == WL_POINTER_AXIS_HORIZONTAL_SCROLL)
@@ -1795,20 +1835,30 @@ static void pointerHandleFrame(void* userData, struct wl_pointer* pointer)
             processPointerEnterSurface(_glfw.wl.pending.pointerSurface);
     }
 
+    // Callbacks may destroy the window and clear pointer focus; stop the frame.
     if (!_glfw.wl.pointerSurface)
-        return;
+        goto done;
 
     if (_glfw.wl.pending.events & GLFW_PENDING_MOTION)
+    {
         processPointerMotion(_glfw.wl.pending.pointerX, _glfw.wl.pending.pointerY);
+        if (!_glfw.wl.pointerSurface)
+            goto done;
+    }
 
     if (_glfw.wl.pending.events & GLFW_PENDING_BUTTON)
+    {
         processPointerButton(_glfw.wl.pending.button, _glfw.wl.pending.action);
+        if (!_glfw.wl.pointerSurface)
+            goto done;
+    }
 
     if (_glfw.wl.pending.events & GLFW_PENDING_DISCRETE)
         processPointerScroll(_glfw.wl.pending.discreteX, _glfw.wl.pending.discreteY);
     else if (_glfw.wl.pending.events & GLFW_PENDING_SCROLL)
         processPointerScroll(_glfw.wl.pending.scrollX, _glfw.wl.pending.scrollY);
 
+done:
     memset(&_glfw.wl.pending, 0, sizeof(_glfw.wl.pending));
 }
 
@@ -1837,7 +1887,8 @@ static void pointerHandleAxisValue120(void* data,
                                       uint32_t axis,
                                       int32_t value120)
 {
-    if (!_glfw.wl.pointerSurface)
+    // value120 exists only with framing; allow same-frame enter+scroll
+    if (!pointerHasSurfaceOrPendingEnter())
         return;
 
     _glfw.wl.pending.events |= GLFW_PENDING_DISCRETE;

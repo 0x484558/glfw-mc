@@ -43,7 +43,7 @@ features or fixing bugs.
 fixes and enhancements needed for Minecraft:
 
 - **Build configuration** defaults to `Release` build type and enable aggressive
-compiler optimisations (`-march=native -mtune=native -Ofast -flto`) as this is
+compiler optimisations (`-march=native -mtune=native -O3 -ffast-math -flto`) as this is
 beneficial when already committing to a headache of running a custom GLFW
 build with Minecraft on Wayland. Additionally, shared libraries and Wayland
 support are enabled by default.
@@ -144,8 +144,13 @@ guide](https://github.com/glfw/glfw/blob/master/docs/CONTRIBUTING.md) for
 information on what to include when reporting a bug.
 
 
+## Changelog since 3.5
+
+None.
+
 ## Changelog since 3.4
 
+ - Updated this fork with upstream GLFW changes through `d9d6f0f1`
  - Added `GLFW_UNLIMITED_MOUSE_BUTTONS` input mode that allows mouse buttons beyond
    the limit of the mouse button tokens to be reported (#2423)
  - Added `glfwGetEGLConfig` function to query the `EGLConfig` of a window (#2045)
@@ -153,8 +158,11 @@ information on what to include when reporting a bug.
  - Updated minimum CMake version to 3.16 (#2541)
  - Removed support for building with original MinGW (#2540)
  - [Win32] Removed support for Windows XP and Vista (#2505)
+ - [Win32] Bugfix: Media keys were reported with a scancode of 256 (#1768,#2417,#2625)
  - [Cocoa] Added `QuartzCore` framework as link-time dependency
  - [Cocoa] Removed support for OS X 10.10 Yosemite and earlier (#2506)
+ - [Cocoa] Bugfix: Cmd+Period, Ctrl+Tab and Ctrl+Esc key events were not emitted
+   (#1362,#2278)
  - [Wayland] Bugfix: The fractional scaling related objects were not destroyed
  - [Wayland] Bugfix: `glfwInit` would segfault on compositor with no seat (#2517)
  - [Wayland] Bugfix: A drag entering a non-GLFW surface could cause a segfault
@@ -174,11 +182,27 @@ information on what to include when reporting a bug.
    potential segmentation fault (#2744)
  - [Wayland] Bugfix: Confining or disabling the cursor could segfault on
    compositors without `pointer-constraints-unstable-v1`
+ - [Wayland] Bugfix: Key repeat did not function on very old compositors
+ - [Wayland] Bugfix: The `libwayland-client` library was not unloaded at termination
+ - [Wayland] Bugfix: Scroll events were sent twice on some versions of GNOME (#2494)
+ - [Wayland] Bugfix: Two-dimensional scroll input was emitted as separate axes
+ - [Wayland] Bugfix: Mouse wheel scroll distance was incorrect on some compositors
+ - [Wayland] Bugfix: `glfwSwapBuffers` would halt with nonzero swap interval when window
+   was suspended (#1350,#2582,#2640,#2719,#2723,#2800,#2827)
+ - [Wayland] Bugfix: `glfwPostEmptyEvent` would leak a callback proxy (#2836)
+ - [Wayland] Bugfix: `glfwHideWindow` did not always send its request immediately
+ - [Wayland] Bugfix: Initial window and framebuffer size callbacks could be
+   emitted synchronously during window creation or showing
+ - [Wayland] Bugfix: Some event types were not always processed by `glfwPollEvents` or
+   `glfwWait*Events` (#2793,#2795)
+ - [Wayland] Bugfix: Scaled framebuffer size was sometimes incorect (#2713,#2810)
  - [X11] Bugfix: Running without a WM could trigger an assert (#2593,#2601,#2631)
  - [X11] Bugfix: Occasional crash when an idle display awakes (#2766) 
  - [X11] Bugfix: Prevent BadWindow when creating small windows with a content scale
    less than 1 (#2754)
  - [X11] Bugfix: Clamp width and height to >= 1 to prevent BadValue error and app exit
+ - [X11] Bugfix: Floating windows silently became non-floating when hidden (#2276)
+ - [X11] Bugfix: The `libXext` library was not unloaded at termination
  - [Linux] Bugfix: The header for `ioctl` was only implicitly included (#2778)
  - [Null] Added Vulkan 'window' surface creation via `VK_EXT_headless_surface`
  - [Null] Added EGL context creation on Mesa via `EGL_MESA_platform_surfaceless`
@@ -206,9 +230,6 @@ information on what to include when reporting a bug.
  - Added `GLFW_MANAGE_PREEDIT_CANDIDATE` init hint for displaying preedit
    candidates on the application side (supported only on Windows currently)
    (#2130)
- - [X11] Bugfix: Prevent BadWindow when creating small windows with a content scale
-   less than 1 (#2754)
-
 
 ## Contact
 
@@ -224,4 +245,3 @@ request, please file it in the
 
 Finally, if you're interested in helping out with the development of GLFW or
 porting it to your favorite platform, join us on the forum or GitHub.
-

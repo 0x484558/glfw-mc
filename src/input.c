@@ -375,10 +375,10 @@ void _glfwInputPreeditCandidate(_GLFWwindow* window)
 void _glfwInputScroll(_GLFWwindow* window, double xoffset, double yoffset)
 {
     assert(window != NULL);
-    assert(xoffset > -FLT_MAX);
-    assert(xoffset < FLT_MAX);
-    assert(yoffset > -FLT_MAX);
-    assert(yoffset < FLT_MAX);
+    assert(xoffset >= -DBL_MAX);
+    assert(xoffset <= DBL_MAX);
+    assert(yoffset >= -DBL_MAX);
+    assert(yoffset <= DBL_MAX);
 
     if (window->callbacks.scroll)
         window->callbacks.scroll((GLFWwindow*) window, xoffset, yoffset);
@@ -417,10 +417,10 @@ void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods)
 void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos)
 {
     assert(window != NULL);
-    assert(xpos > -FLT_MAX);
-    assert(xpos < FLT_MAX);
-    assert(ypos > -FLT_MAX);
-    assert(ypos < FLT_MAX);
+    assert(xpos >= -DBL_MAX);
+    assert(xpos <= DBL_MAX);
+    assert(ypos >= -DBL_MAX);
+    assert(ypos <= DBL_MAX);
 
     if (window->virtualCursorPosX == xpos && window->virtualCursorPosY == ypos)
         return;
@@ -478,6 +478,8 @@ void _glfwInputJoystickAxis(_GLFWjoystick* js, int axis, float value)
     assert(js != NULL);
     assert(axis >= 0);
     assert(axis < js->axisCount);
+    assert(value >= -FLT_MAX);
+    assert(value <= FLT_MAX);
 
     js->axes[axis] = value;
 }
@@ -868,8 +870,7 @@ GLFWAPI void glfwSetCursorPos(GLFWwindow* handle, double xpos, double ypos)
     _GLFWwindow* window = (_GLFWwindow*) handle;
     assert(window != NULL);
 
-    if (xpos != xpos || xpos < -DBL_MAX || xpos > DBL_MAX ||
-        ypos != ypos || ypos < -DBL_MAX || ypos > DBL_MAX)
+    if (!(xpos >= -DBL_MAX && xpos <= DBL_MAX && ypos >= -DBL_MAX && ypos <= DBL_MAX))
     {
         _glfwInputError(GLFW_INVALID_VALUE,
                         "Invalid cursor position %f %f",
@@ -1630,7 +1631,7 @@ GLFWAPI void glfwSetTime(double time)
 {
     _GLFW_REQUIRE_INIT();
 
-    if (time != time || time < 0.0 || time > 18446744073.0)
+    if (!(time >= 0.0 && time <= 18446744073.0))
     {
         _glfwInputError(GLFW_INVALID_VALUE, "Invalid time %f", time);
         return;
@@ -1651,4 +1652,3 @@ GLFWAPI uint64_t glfwGetTimerFrequency(void)
     _GLFW_REQUIRE_INIT_OR_RETURN(0);
     return _glfwPlatformGetTimerFrequency();
 }
-

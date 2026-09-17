@@ -6,10 +6,12 @@ excludes other invaluable contributions like language bindings and text and
 video tutorials.
 
  - Bobyshev Alexander
+ - Alzathar
  - Laurent Aphecetche
  - Matt Arsenault
  - Takuro Ashie
  - ashishgamedev
+ - avagordon01
  - David Avedissian
  - Luca Bacci
  - Keith Bauer
@@ -55,7 +57,9 @@ video tutorials.
  - Bill Currie
  - Jason Daly
  - danhambleton
+ - danijel1023
  - Jarrod Davis
+ - Aaron Day
  - decce
  - Olivier Delannoy
  - Paul R. Deppe
@@ -75,11 +79,13 @@ video tutorials.
  - Nikita Fediuchin
  - Felipe Ferreira
  - Michael Fogleman
+ - Folling
  - forworldm
  - Jason Francis
  - Gerald Franz
  - Mário Freitas
  - Daijiro Fukuda
+ - Friz64
  - GeO4d
  - Marcus Geelnard
  - Gegy
@@ -95,6 +101,7 @@ video tutorials.
  - Andrew Gutekanst
  - Stephen Gutekanst
  - Jonathan Hale
+ - halx99
  - Daniel Hauser
  - hdf89shfdfs
  - Moritz Heinemann
@@ -163,6 +170,7 @@ video tutorials.
  - Bryce Mehring
  - Jonathan Mercier
  - Marcel Metz
+ - Lucas Michaudel
  - Liam Middlebrook
  - mightgoyardstill
  - Mihail
@@ -179,6 +187,7 @@ video tutorials.
  - Jon Morton
  - Pierre Moulon
  - Martins Mozeiko
+ - Tomáš Mráz
  - Pascal Muetschard
  - James Murphy
  - Julian Møller
@@ -225,6 +234,7 @@ video tutorials.
  - Philip Rideout
  - Eddie Ringle
  - Max Risuhin
+ - road2react
  - Joe Roback
  - Jorge Rodriguez
  - Jari Ronkainen
@@ -232,6 +242,7 @@ video tutorials.
  - Ed Ropple
  - Aleksey Rybalkin
  - Mikko Rytkönen
+ - saikyun
  - Riku Salminen
  - Yoshinori Sano
  - Brandon Schaefer
@@ -308,4 +319,3 @@ video tutorials.
  - Leonard König
  - All the unmentioned and anonymous contributors in the GLFW community, for bug
    reports, patches, feedback, testing and encouragement
-

@@ -193,32 +193,6 @@ static GLFWbool loadLibraries(void)
     return GLFW_TRUE;
 }
 
-// Unload used libraries (DLLs)
-//
-static void freeLibraries(void)
-{
-    if (_glfw.win32.xinput.instance)
-        _glfwPlatformFreeModule(_glfw.win32.xinput.instance);
-
-    if (_glfw.win32.dinput8.instance)
-        _glfwPlatformFreeModule(_glfw.win32.dinput8.instance);
-
-    if (_glfw.win32.user32.instance)
-        _glfwPlatformFreeModule(_glfw.win32.user32.instance);
-
-    if (_glfw.win32.dwmapi.instance)
-        _glfwPlatformFreeModule(_glfw.win32.dwmapi.instance);
-
-    if (_glfw.win32.shcore.instance)
-        _glfwPlatformFreeModule(_glfw.win32.shcore.instance);
-
-    if (_glfw.win32.ntdll.instance)
-        _glfwPlatformFreeModule(_glfw.win32.ntdll.instance);
-
-    if (_glfw.win32.imm32.instance)
-        _glfwPlatformFreeModule(_glfw.win32.imm32.instance);
-}
-
 // Create key code translation tables
 //
 static void createKeyTables(void)
@@ -755,8 +729,15 @@ void _glfwTerminateWin32(void)
     _glfwTerminateEGL();
     _glfwTerminateOSMesa();
 
-    freeLibraries();
+    _glfwPlatformFreeModule(_glfw.win32.xinput.instance);
+    _glfwPlatformFreeModule(_glfw.win32.dinput8.instance);
+    _glfwPlatformFreeModule(_glfw.win32.user32.instance);
+    _glfwPlatformFreeModule(_glfw.win32.dwmapi.instance);
+    _glfwPlatformFreeModule(_glfw.win32.shcore.instance);
+    _glfwPlatformFreeModule(_glfw.win32.ntdll.instance);
+    _glfwPlatformFreeModule(_glfw.win32.imm32.instance);
+
+    memset(&_glfw.win32, 0, sizeof(_glfw.win32));
 }
 
 #endif // _GLFW_WIN32
-

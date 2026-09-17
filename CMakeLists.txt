@@ -5,10 +5,11 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_options(-march=native -mtune=native -Ofast -flto)
+    add_compile_options(-march=native -mtune=native -O3 -ffast-math -flto)
+    add_link_options(-flto)
 endif()
 
-project(GLFW VERSION 3.5.0 LANGUAGES C HOMEPAGE_URL "https://www.glfw.org/")
+project(GLFW VERSION 3.5.1 LANGUAGES C HOMEPAGE_URL "https://www.glfw.org/")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -141,4 +142,3 @@ if (GLFW_INSTALL)
         set_target_properties(uninstall PROPERTIES FOLDER "GLFW3")
     endif()
 endif()
-
